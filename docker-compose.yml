@@ -15,7 +15,15 @@ services:
   api:
     build: .
     ports:
-      - "8000:8000"
+      # Loopback only. Published on 0.0.0.0 this port answered straight from
+      # the public internet, past Traefik and so past `block-internal@file`:
+      # the /api/test/user/* endpoints that return 403 at the edge returned
+      # 200 here. Kept published rather than dropped because the host-side
+      # tooling talks to http://localhost:8000 (scripts/cleanup_firmware_db.py
+      # and most of tests/). Traefik is unaffected; it reaches the container
+      # over the external `proxy` network on the port named in the
+      # loadbalancer label below, never through this mapping.
+      - "127.0.0.1:8000:8000"
     restart: unless-stopped
     environment:
       # Ed25519 firmware-signing PUBLIC key (safe to commit). Turns on signature
